@@ -1,0 +1,289 @@
+/// hideInSearch 搜索里不显示
+/// hideInTable  表格中不显示
+/// createIgnore 创建时忽略
+/// updateIgnore 更新时忽略
+/// public 公开的
+/// viewAll 可以查询所有数据
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator NESTJSApiGenerator {
+  provider  = "node -r ts-node/register/transpile-only prisma/generator"
+  output    = "../src/@generated"
+  whitelist = "Project,Application,ApplicationEnvironment,ConfigurationItem,ConfigMap,ApplicationConfiguration,ApplicationConfigurationHiostory"
+}
+
+// https://dbdiagram.io/d
+generator dbml {
+  provider   = "prisma-dbml-generator"
+  output     = "./dbml"
+  outputName = "pigeon.dbml"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// 用户
+model User {
+  id             String @id @default(cuid())
+  /// 用户名
+  username       String @unique
+  /// 昵称
+  nickname       String
+  hashedPassword String
+  provider       String @default("local")
+
+  /// 我参与的项目
+  projects ProjectUserRole[]
+
+  /// 我创建的项目
+  createdProjects Project[]
+
+  /// 我参与的应用
+  applications ApplicationUserRole[]
+
+  /// 我创建的应用
+  createdApplications Application[]
+
+  /// 我参与的应用环境
+  applicationEnvironments ApplicationEnvironmentUserRole[]
+
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+  updatedAt DateTime? @updatedAt
+}
+
+/// 项目
+model Project {
+  id           String            @id @default(cuid())
+  /// 项目名称
+  name         String            @unique
+  /// 项目描述
+  description  String?
+  users        ProjectUserRole[]
+  /// 创建人
+  createdBy    String
+  creator      User              @relation(fields: [createdBy], references: [id])
+  /// 下属应用
+  applications Application[]
+
+  /// 字典配置
+  configMaps ConfigMap[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+  deletedAt DateTime?
+}
+
+enum EProjectUserRole {
+  /// 管理员身份
+  admin
+  /// 可查看
+  viewer
+}
+
+/// 用户在项目中的角色
+model ProjectUserRole {
+  user      User             @relation(fields: [userId], references: [id])
+  userId    String
+  project   Project          @relation(fields: [projectId], references: [id])
+  projectId String
+  role      EProjectUserRole
+  createdAt DateTime         @default(now())
+  updatedAt DateTime?        @updatedAt
+
+  @@id([userId, projectId])
+}
+
+/// 应用
+model Application {
+  id          String  @id @default(cuid())
+  /// 应用名称
+  name        String
+  /// 应用描述
+  description String?
+  /// 所属项目
+  project     Project @relation(fields: [projectId], references: [id])
+  projectId   String
+
+  /// 应用环境列表
+  environments ApplicationEnvironment[]
+
+  /// 创建人
+  createdBy String
+  creator   User   @relation(fields: [createdBy], references: [id])
+
+  users ApplicationUserRole[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  @@unique([name, projectId])
+}
+
+enum EApplicationUserRole {
+  /// 管理员
+  admin
+  /// 查看者
+  viewer
+}
+
+/// 用户在应用中的角色
+model ApplicationUserRole {
+  user          User                 @relation(fields: [userId], references: [id])
+  userId        String
+  application   Application          @relation(fields: [applicationId], references: [id])
+  applicationId String
+  role          EApplicationUserRole
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime?            @updatedAt
+
+  @@id([userId, applicationId])
+}
+
+/// 应用的环境
+// 同一个应用可以有多个环境
+model ApplicationEnvironment {
+  id            String      @id @default(cuid())
+  /// 环境名称
+  name          String
+  /// 环境描述
+  description   String?
+  /// web域名匹配规则
+  domainRule    String?
+  /// 所属应用
+  application   Application @relation(fields: [applicationId], references: [id])
+  applicationId String
+
+  /// 所有的配置
+  configurations ApplicationConfiguration[]
+
+  /// 所有的配置历史
+  configurationHistories ApplicationConfigurationHiostory[]
+
+  /// 用户列表
+  users ApplicationEnvironmentUserRole[]
+
+  /// 创建人
+  createdBy String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  @@unique([name, applicationId])
+}
+
+enum EApplicationEnvironmentUserRole {
+  /// 管理员
+  admin
+  /// 查看者
+  viewer
+}
+
+/// 用户在应用环境中的角色
+model ApplicationEnvironmentUserRole {
+  user                     User                            @relation(fields: [userId], references: [id])
+  userId                   String
+  applicationEnvironment   ApplicationEnvironment          @relation(fields: [applicationEnvironmentId], references: [id])
+  applicationEnvironmentId String
+  role                     EApplicationEnvironmentUserRole
+  createdAt                DateTime                        @default(now())
+  updatedAt                DateTime?                       @updatedAt
+
+  @@id([userId, applicationEnvironmentId])
+}
+
+enum EConfigurationValueType {
+  /// 字符串
+  string
+  /// json
+  json
+  /// yaml
+  yaml
+}
+
+/// 配置项
+model ConfigurationItem {
+  id          String                  @id @default(cuid())
+  /// 键
+  key         String
+  /// 值类型
+  valueType   EConfigurationValueType
+  /// 值
+  value       String
+  /// 配置字典
+  configMap   ConfigMap               @relation(fields: [configMapId], references: [id])
+  configMapId String
+
+  /// 应用的配置
+  applicationConfiguration   ApplicationConfiguration @relation(fields: [applicationConfigurationId], references: [id])
+  applicationConfigurationId String
+
+  /// 应用配置历史
+  applicationConfigurationHistory   ApplicationConfigurationHiostory @relation(fields: [applicationConfigurationHistoryId], references: [id])
+  applicationConfigurationHistoryId String
+
+  /// 创建人
+  createdBy String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+/// 配置字典
+// 项目间复用
+model ConfigMap {
+  id            String              @id @default(cuid())
+  /// 配置项列表
+  configuration ConfigurationItem[]
+  /// 所属项目
+  project       Project             @relation(fields: [projectId], references: [id])
+  projectId     String
+
+  /// 创建人
+  createdBy String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+/// 应用的配置
+model ApplicationConfiguration {
+  id                       String                 @id @default(cuid())
+  /// 版本号
+  version                  String?
+  /// 配置项列表
+  configuration            ConfigurationItem[]
+  /// 所属项目
+  applicationEnvironment   ApplicationEnvironment @relation(fields: [applicationEnvironmentId], references: [id])
+  applicationEnvironmentId String
+
+  /// 创建人
+  createdBy String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+/// 应用的配置历史
+model ApplicationConfigurationHiostory {
+  id                       String                 @id @default(cuid())
+  /// 版本号
+  version                  String?
+  /// 配置项列表
+  configuration            ConfigurationItem[]
+  /// 所属项目
+  applicationEnvironment   ApplicationEnvironment @relation(fields: [applicationEnvironmentId], references: [id])
+  applicationEnvironmentId String
+
+  /// 创建人
+  createdBy String
+  /// 删除人
+  deletedBy String
+
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+}

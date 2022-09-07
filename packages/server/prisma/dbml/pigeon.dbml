@@ -1,0 +1,236 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table User {
+  id String [pk]
+  username String [unique, not null, note: '用户名']
+  nickname String [not null, note: '昵称']
+  hashedPassword String [not null]
+  provider String [not null, default: 'local']
+  projects ProjectUserRole [not null, note: '我参与的项目']
+  createdProjects Project [not null, note: '我创建的项目']
+  applications ApplicationUserRole [not null, note: '我参与的应用']
+  createdApplications Application [not null, note: '我创建的应用']
+  applicationEnvironments ApplicationEnvironmentUserRole [not null, note: '我参与的应用环境']
+  createdAt DateTime [default: `now()`, not null]
+  deletedAt DateTime
+  updatedAt DateTime
+
+  Note: '用户'
+}
+
+Table Project {
+  id String [pk]
+  name String [unique, not null, note: '项目名称']
+  description String [note: '项目描述']
+  users ProjectUserRole [not null]
+  createdBy String [not null, note: '创建人']
+  creator User [not null]
+  applications Application [not null, note: '下属应用']
+  configMaps ConfigMap [not null, note: '字典配置']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  deletedAt DateTime
+
+  Note: '项目'
+}
+
+Table ProjectUserRole {
+  user User [not null]
+  userId String [not null]
+  project Project [not null]
+  projectId String [not null]
+  role EProjectUserRole [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+
+  indexes {
+    (userId, projectId) [pk]
+  }
+
+  Note: '用户在项目中的角色'
+}
+
+Table Application {
+  id String [pk]
+  name String [not null, note: '应用名称']
+  description String [note: '应用描述']
+  project Project [not null, note: '所属项目']
+  projectId String [not null]
+  environments ApplicationEnvironment [not null, note: '应用环境列表']
+  createdBy String [not null, note: '创建人']
+  creator User [not null]
+  users ApplicationUserRole [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+
+  indexes {
+    (name, projectId) [unique]
+  }
+
+  Note: '应用'
+}
+
+Table ApplicationUserRole {
+  user User [not null]
+  userId String [not null]
+  application Application [not null]
+  applicationId String [not null]
+  role EApplicationUserRole [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+
+  indexes {
+    (userId, applicationId) [pk]
+  }
+
+  Note: '用户在应用中的角色'
+}
+
+Table ApplicationEnvironment {
+  id String [pk]
+  name String [not null, note: '环境名称']
+  description String [note: '环境描述']
+  domainRule String [note: 'web域名匹配规则']
+  application Application [not null, note: '所属应用']
+  applicationId String [not null]
+  configurations ApplicationConfiguration [not null, note: '所有的配置']
+  configurationHistories ApplicationConfigurationHiostory [not null, note: '所有的配置历史']
+  users ApplicationEnvironmentUserRole [not null, note: '用户列表']
+  createdBy String [not null, note: '创建人']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+
+  indexes {
+    (name, applicationId) [unique]
+  }
+
+  Note: '应用的环境'
+}
+
+Table ApplicationEnvironmentUserRole {
+  user User [not null]
+  userId String [not null]
+  applicationEnvironment ApplicationEnvironment [not null]
+  applicationEnvironmentId String [not null]
+  role EApplicationEnvironmentUserRole [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+
+  indexes {
+    (userId, applicationEnvironmentId) [pk]
+  }
+
+  Note: '用户在应用环境中的角色'
+}
+
+Table ConfigurationItem {
+  id String [pk]
+  key String [not null, note: '键']
+  valueType EConfigurationValueType [not null, note: '值类型']
+  value String [not null, note: '值']
+  configMap ConfigMap [not null, note: '配置字典']
+  configMapId String [not null]
+  applicationConfiguration ApplicationConfiguration [not null, note: '应用的配置']
+  applicationConfigurationId String [not null]
+  applicationConfigurationHistory ApplicationConfigurationHiostory [not null, note: '应用配置历史']
+  applicationConfigurationHistoryId String [not null]
+  createdBy String [not null, note: '创建人']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+
+  Note: '配置项'
+}
+
+Table ConfigMap {
+  id String [pk]
+  configuration ConfigurationItem [not null, note: '配置项列表']
+  project Project [not null, note: '所属项目']
+  projectId String [not null]
+  createdBy String [not null, note: '创建人']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+
+  Note: '配置字典'
+}
+
+Table ApplicationConfiguration {
+  id String [pk]
+  version String [note: '版本号']
+  configuration ConfigurationItem [not null, note: '配置项列表']
+  applicationEnvironment ApplicationEnvironment [not null, note: '所属项目']
+  applicationEnvironmentId String [not null]
+  createdBy String [not null, note: '创建人']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+
+  Note: '应用的配置'
+}
+
+Table ApplicationConfigurationHiostory {
+  id String [pk]
+  version String [note: '版本号']
+  configuration ConfigurationItem [not null, note: '配置项列表']
+  applicationEnvironment ApplicationEnvironment [not null, note: '所属项目']
+  applicationEnvironmentId String [not null]
+  createdBy String [not null, note: '创建人']
+  deletedBy String [not null, note: '删除人']
+  createdAt DateTime [default: `now()`, not null]
+  deletedAt DateTime
+
+  Note: '应用的配置历史'
+}
+
+Enum EProjectUserRole {
+  admin
+  viewer
+}
+
+Enum EApplicationUserRole {
+  admin
+  viewer
+}
+
+Enum EApplicationEnvironmentUserRole {
+  admin
+  viewer
+}
+
+Enum EConfigurationValueType {
+  string
+  json
+  yaml
+}
+
+Ref: Project.createdBy > User.id
+
+Ref: ProjectUserRole.userId > User.id
+
+Ref: ProjectUserRole.projectId > Project.id
+
+Ref: Application.projectId > Project.id
+
+Ref: Application.createdBy > User.id
+
+Ref: ApplicationUserRole.userId > User.id
+
+Ref: ApplicationUserRole.applicationId > Application.id
+
+Ref: ApplicationEnvironment.applicationId > Application.id
+
+Ref: ApplicationEnvironmentUserRole.userId > User.id
+
+Ref: ApplicationEnvironmentUserRole.applicationEnvironmentId > ApplicationEnvironment.id
+
+Ref: ConfigurationItem.configMapId > ConfigMap.id
+
+Ref: ConfigurationItem.applicationConfigurationId > ApplicationConfiguration.id
+
+Ref: ConfigurationItem.applicationConfigurationHistoryId > ApplicationConfigurationHiostory.id
+
+Ref: ConfigMap.projectId > Project.id
+
+Ref: ApplicationConfiguration.applicationEnvironmentId > ApplicationEnvironment.id
+
+Ref: ApplicationConfigurationHiostory.applicationEnvironmentId > ApplicationEnvironment.id

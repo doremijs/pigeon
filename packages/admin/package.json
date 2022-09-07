@@ -1,0 +1,46 @@
+{
+  "name": "@pigeon/admin",
+  "version": "0.0.1",
+  "description": "admin panel",
+  "keywords": [
+    "pigeon",
+    "admin",
+    "react"
+  ],
+  "license": "GPL-3.0-or-later",
+  "author": "",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "gen:api": "a2s generate -y"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^4.7.0",
+    "@ant-design/pro-components": "^1.1.21",
+    "@ant-design/pro-layout": "^6.38.22",
+    "antd": "^4.23.0",
+    "axios": "^0.27.2",
+    "lodash": "^4.17.21",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-error-boundary": "^3.1.4",
+    "react-router-dom": "^6.3.0",
+    "viewerjs": "^1.10.5",
+    "zustand": "^4.1.1"
+  },
+  "devDependencies": {
+    "@types/minio": "^7.0.13",
+    "@vitejs/plugin-react": "^2.1.0",
+    "@zidong/a2s": "^0.0.15",
+    "less": "^4.1.3",
+    "vite": "^3.1.0",
+    "vite-plugin-imp": "^2.3.0",
+    "vite-plugin-windicss": "^1.8.7",
+    "windicss": "^3.5.6"
+  },
+  "engines": {
+    "node": ">=10.0.0"
+  }
+}
