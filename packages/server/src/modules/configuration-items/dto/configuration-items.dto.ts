@@ -25,19 +25,13 @@ export class CreateConfigurationItemDto {
   value: string
   @IsNotEmpty()
   @IsString()
-  configMapId: string
+  configMapId?: string
   @IsNotEmpty()
   @IsString()
-  applicationConfigurationId: string
+  applicationConfigurationId?: string
   @IsNotEmpty()
   @IsString()
-  applicationConfigurationHistoryId: string
-  /**
-   * 创建人
-   */
-  @IsNotEmpty()
-  @IsString()
-  createdBy: string
+  applicationConfigurationHistoryId?: string
 }
 
 export class UpdateConfigurationItemDto extends PartialType(CreateConfigurationItemDto) {
@@ -47,6 +41,12 @@ export class ConfigurationItemModel extends CreateConfigurationItemDto {
   @IsNotEmpty()
   @IsString()
   id: string
+  /**
+   * 创建人
+   */
+  @IsNotEmpty()
+  @IsString()
+  createdBy: string
   @IsNotEmpty()
   @Type(() => Date)
   createdAt: Date

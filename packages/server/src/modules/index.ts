@@ -6,7 +6,7 @@ import { ApplicationEnvironmentsModule } from './application-environments/applic
 import { ConfigurationItemsModule } from './configuration-items/configuration-items.module'
 import { ConfigMapsModule } from './config-maps/config-maps.module'
 import { ApplicationConfigurationsModule } from './application-configurations/application-configurations.module'
-import { ApplicationConfigurationHiostoriesModule } from './application-configuration-hiostories/application-configuration-hiostories.module'
+import { ApplicationConfigurationHistoriesModule } from './application-configuration-histories/application-configuration-histories.module'
 
 export const openedModules = [
   AuthModule,
@@ -17,5 +17,5 @@ export const openedModules = [
   ConfigurationItemsModule,
   ConfigMapsModule,
   ApplicationConfigurationsModule,
-  ApplicationConfigurationHiostoriesModule
+  ApplicationConfigurationHistoriesModule
 ]

@@ -143,7 +143,6 @@ import {
 } from './dto/${dasherizedName}.dto'
 import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
 import { PigeonAction } from '@/decorators/action'
-import { CommonBatchRemoveDto } from '@/modules/common/common.dto'
 import { ${pluralizedUpName}QueryDto } from './dto/query.dto'
 
 @Controller('${dasherizedName}')
@@ -170,8 +169,6 @@ export class ${pluralizedUpName}Controller {
     return this.${pluralizedName}Service.findAll(query)
   }` : ''}
 
-  // TODO 导出
-
   @PigeonAction('GET', ':id', '查询${cnName}详情'${model.public ? ', { public: true }' : ''})
   @ApiOkResponse({ type: ${singularedUpName}Model })
   findOne(@Param('id') id: string) {
@@ -183,17 +180,6 @@ export class ${pluralizedUpName}Controller {
   @ApiOkResponse({ type: ${singularedUpName}Model })
   update(@Param('id') id: string, @Body() update${singularedUpName}Dto: Update${singularedUpName}Dto) {
     return this.${pluralizedName}Service.update(id, update${singularedUpName}Dto)
-  }
-
-  ${isSoftDelete ? `@PigeonAction('DELETE', 'batch/s', '批量逻辑删除${cnName}')
-  batchSoftRemove(@Body() body: CommonBatchRemoveDto) {
-    return this.${pluralizedName}Service.batchSoftRemove(body.ids)
-  }` :
-
-  `@PigeonAction('DELETE', 'batch', '批量删除${cnName}')
-  batchRemove(@Body() body: CommonBatchRemoveDto) {
-    return this.${pluralizedName}Service.batchRemove(body.ids)
-  }`
   }
 
   ${isSoftDelete ? `@PigeonAction('DELETE', ':id/s', '逻辑删除${cnName}')
@@ -260,7 +246,8 @@ async function generateService(args: GenerateArgs, model: DMMF.Model, isSoftDele
 import { PrismaService } from '@/providers/prisma.service'
 import { Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
-import { buildOrder } from '../common/utils'
+import { buildOrder, buildWhere } from '../common/utils'
+import type { WhereQuery } from '../common/utils'
 import { Create${singularedUpName}Dto, Update${singularedUpName}Dto } from './dto/${dasherizedName}.dto'
 import { ${pluralizedUpName}QueryDto } from './dto/query.dto'
 
@@ -274,10 +261,10 @@ export class ${pluralizedUpName}Service {
 
   async findMany(queryDto: ${pluralizedUpName}QueryDto) {
     const { sorter, page = 1, pageSize = 10, ...rest } = queryDto
-    const where: Prisma.${singularedUpName}WhereInput = {
+    const where: Prisma.${singularedUpName}WhereInput = buildWhere(${isSoftDelete ? `{
       deletedAt: null,
       ...rest
-    }
+    }` : 'rest'} as WhereQuery)
     const data = await this.prisma.${singularedName}.findMany({
       where,
       skip: pageSize * (page - 1),
@@ -297,10 +284,10 @@ export class ${pluralizedUpName}Service {
   }${model.viewAll ? `
 
   async findAll(queryDto: ${pluralizedUpName}QueryDto) {
-    const where: Prisma.${singularedUpName}WhereInput = {
+    const where: Prisma.${singularedUpName}WhereInput = buildWhere(${isSoftDelete ? `{
       deletedAt: null,
       ...queryDto
-    }
+    }` : 'queryDto'} as WhereQuery)
     const data = await this.prisma.${singularedName}.findMany({
       where${
         allRelations.length
@@ -345,26 +332,6 @@ export class ${pluralizedUpName}Service {
   `remove(id: string) {
     return this.prisma.${singularedName}.delete({
       where: { id }
-    })
-  }`}
-
-  ${isSoftDelete ? `batchSoftRemove(ids: string[]) {
-    return this.prisma.${singularedName}.updateMany({
-      data: { deletedAt: new Date() },
-      where: {
-        id: {
-          in: ids
-        }
-      }
-    })
-  }` :
-  `batchRemove(ids: string[]) {
-    return this.prisma.${singularedName}.deleteMany({
-      where: {
-        id: {
-          in: ids
-        }
-      }
     })
   }`}
 }

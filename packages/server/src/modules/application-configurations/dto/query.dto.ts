@@ -12,10 +12,4 @@ export class ApplicationConfigurationsQueryDto extends CommonQueryDto {
   @IsOptional()
   @IsString()
   applicationEnvironmentId?: string
-  /**
-   * 创建人
-   */
-  @IsOptional()
-  @IsString()
-  createdBy?: string
 }

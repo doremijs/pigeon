@@ -1,10 +1,9 @@
 // Auto generated
-import { PartialType } from '@nestjs/swagger'
 import { ConfigurationItem } from '@prisma/client'
 import { Type } from 'class-transformer'
 import { IsNotEmpty, IsString, IsOptional } from 'class-validator'
 
-export class CreateApplicationConfigurationDto {
+export class CreateApplicationConfigurationHistoryDto {
   /**
    * 版本号
    */
@@ -20,10 +19,7 @@ export class CreateApplicationConfigurationDto {
   applicationEnvironmentId: string
 }
 
-export class UpdateApplicationConfigurationDto extends PartialType(CreateApplicationConfigurationDto) {
-}
-
-export class ApplicationConfigurationModel extends CreateApplicationConfigurationDto {
+export class ApplicationConfigurationHistoryModel extends CreateApplicationConfigurationHistoryDto {
   @IsNotEmpty()
   @IsString()
   id: string
@@ -38,10 +34,10 @@ export class ApplicationConfigurationModel extends CreateApplicationConfiguratio
   createdAt: Date
   @IsOptional()
   @Type(() => Date)
-  updatedAt?: Date
+  deletedAt?: Date
 }
 
-export class ApplicationConfigurationListDto {
+export class ApplicationConfigurationHistoryListDto {
   /**
    * 总数
    */
@@ -49,5 +45,5 @@ export class ApplicationConfigurationListDto {
   /**
    * 当前页数据
    */
-  data: ApplicationConfigurationModel[]
+  data: ApplicationConfigurationHistoryModel[]
 }

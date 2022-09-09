@@ -1,6 +1,6 @@
 // Auto generated
 import { CommonQueryDto } from '@/modules/common/common.dto'
-import { IsOptional, IsString } from 'class-validator'
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator'
 
 export class ApplicationsQueryDto extends CommonQueryDto {
   /**
@@ -9,19 +9,7 @@ export class ApplicationsQueryDto extends CommonQueryDto {
   @IsOptional()
   @IsString()
   name?: string
-  /**
-   * 应用描述
-   */
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  description?: string
-  @IsOptional()
-  @IsString()
-  projectId?: string
-  /**
-   * 创建人
-   */
-  @IsOptional()
-  @IsString()
-  createdBy?: string
+  projectId: string
 }

@@ -1,7 +1,8 @@
 // Auto generated
 import { PartialType } from '@nestjs/swagger'
+import { EProjectUserRole } from '@prisma/client'
 import { Type } from 'class-transformer'
-import { IsNotEmpty, IsString, IsOptional } from 'class-validator'
+import { IsNotEmpty, IsString, IsOptional, IsEnum } from 'class-validator'
 
 export class CreateProjectDto {
   /**
@@ -16,21 +17,36 @@ export class CreateProjectDto {
   @IsOptional()
   @IsString()
   description?: string
-  /**
-   * 创建人
-   */
-  @IsNotEmpty()
-  @IsString()
-  createdBy: string
 }
 
 export class UpdateProjectDto extends PartialType(CreateProjectDto) {
+}
+
+export class UpdateUserProjectRoleDto {
+  /**
+   * 人员ID
+   */
+  @IsNotEmpty()
+  @IsString()
+  userId: string
+  /**
+   * 角色
+   */
+  @IsNotEmpty()
+  @IsEnum(EProjectUserRole)
+  role: EProjectUserRole
 }
 
 export class ProjectModel extends CreateProjectDto {
   @IsNotEmpty()
   @IsString()
   id: string
+  /**
+   * 创建人
+   */
+  @IsNotEmpty()
+  @IsString()
+  createdBy: string
   @IsNotEmpty()
   @Type(() => Date)
   createdAt: Date

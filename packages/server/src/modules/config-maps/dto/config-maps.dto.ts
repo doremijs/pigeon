@@ -7,12 +7,6 @@ export class CreateConfigMapDto {
   @IsNotEmpty()
   @IsString()
   projectId: string
-  /**
-   * 创建人
-   */
-  @IsNotEmpty()
-  @IsString()
-  createdBy: string
 }
 
 export class UpdateConfigMapDto extends PartialType(CreateConfigMapDto) {
@@ -22,6 +16,12 @@ export class ConfigMapModel extends CreateConfigMapDto {
   @IsNotEmpty()
   @IsString()
   id: string
+  /**
+   * 创建人
+   */
+  @IsNotEmpty()
+  @IsString()
+  createdBy: string
   @IsNotEmpty()
   @Type(() => Date)
   createdAt: Date

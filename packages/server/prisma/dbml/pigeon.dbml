@@ -22,10 +22,10 @@ Table User {
 
 Table Project {
   id String [pk]
-  name String [unique, not null, note: '项目名称']
-  description String [note: '项目描述']
+  name String [not null, note: '项目名称']
+  description String [note: '项目描述 hideInSearch']
   users ProjectUserRole [not null]
-  createdBy String [not null, note: '创建人']
+  createdBy String [not null, note: '创建人 hideInSearch createIgnore updateIgnore']
   creator User [not null]
   applications Application [not null, note: '下属应用']
   configMaps ConfigMap [not null, note: '字典配置']
@@ -55,19 +55,16 @@ Table ProjectUserRole {
 Table Application {
   id String [pk]
   name String [not null, note: '应用名称']
-  description String [note: '应用描述']
+  description String [note: '应用描述 hideInSearch']
   project Project [not null, note: '所属项目']
   projectId String [not null]
   environments ApplicationEnvironment [not null, note: '应用环境列表']
-  createdBy String [not null, note: '创建人']
+  createdBy String [not null, note: '创建人 hideInSearch createIgnore updateIgnore']
   creator User [not null]
   users ApplicationUserRole [not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
-
-  indexes {
-    (name, projectId) [unique]
-  }
+  deletedAt DateTime
 
   Note: '应用'
 }
@@ -91,14 +88,14 @@ Table ApplicationUserRole {
 Table ApplicationEnvironment {
   id String [pk]
   name String [not null, note: '环境名称']
-  description String [note: '环境描述']
-  domainRule String [note: 'web域名匹配规则']
+  description String [note: '环境描述 hideInSearch']
+  domainRule String [note: 'web域名匹配规则 hideInSearch']
   application Application [not null, note: '所属应用']
   applicationId String [not null]
   configurations ApplicationConfiguration [not null, note: '所有的配置']
-  configurationHistories ApplicationConfigurationHiostory [not null, note: '所有的配置历史']
+  configurationHistories ApplicationConfigurationHistory [not null, note: '所有的配置历史']
   users ApplicationEnvironmentUserRole [not null, note: '用户列表']
-  createdBy String [not null, note: '创建人']
+  createdBy String [not null, note: '创建人 hideInSearch createIgnore updateIgnore']
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
 
@@ -128,15 +125,15 @@ Table ApplicationEnvironmentUserRole {
 Table ConfigurationItem {
   id String [pk]
   key String [not null, note: '键']
-  valueType EConfigurationValueType [not null, note: '值类型']
-  value String [not null, note: '值']
-  configMap ConfigMap [not null, note: '配置字典']
-  configMapId String [not null]
-  applicationConfiguration ApplicationConfiguration [not null, note: '应用的配置']
-  applicationConfigurationId String [not null]
-  applicationConfigurationHistory ApplicationConfigurationHiostory [not null, note: '应用配置历史']
-  applicationConfigurationHistoryId String [not null]
-  createdBy String [not null, note: '创建人']
+  valueType EConfigurationValueType [not null, note: '值类型 hideInSearch']
+  value String [not null, note: '值 hideInSearch']
+  configMap ConfigMap [note: '配置字典']
+  configMapId String
+  applicationConfiguration ApplicationConfiguration [note: '应用的配置']
+  applicationConfigurationId String
+  applicationConfigurationHistory ApplicationConfigurationHistory [note: '应用配置历史']
+  applicationConfigurationHistoryId String
+  createdBy String [not null, note: '创建人 hideInSearch createIgnore updateIgnore']
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
 
@@ -148,7 +145,7 @@ Table ConfigMap {
   configuration ConfigurationItem [not null, note: '配置项列表']
   project Project [not null, note: '所属项目']
   projectId String [not null]
-  createdBy String [not null, note: '创建人']
+  createdBy String [not null, note: '创建人 hideInSearch createIgnore updateIgnore']
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
 
@@ -158,26 +155,24 @@ Table ConfigMap {
 Table ApplicationConfiguration {
   id String [pk]
   version String [note: '版本号']
-  configuration ConfigurationItem [not null, note: '配置项列表']
+  configurations ConfigurationItem [not null, note: '配置项列表']
   applicationEnvironment ApplicationEnvironment [not null, note: '所属项目']
   applicationEnvironmentId String [not null]
-  createdBy String [not null, note: '创建人']
+  createdBy String [not null, note: '创建人 hideInSearch createIgnore updateIgnore']
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
 
   Note: '应用的配置'
 }
 
-Table ApplicationConfigurationHiostory {
+Table ApplicationConfigurationHistory {
   id String [pk]
   version String [note: '版本号']
-  configuration ConfigurationItem [not null, note: '配置项列表']
+  configurations ConfigurationItem [not null, note: '配置项列表']
   applicationEnvironment ApplicationEnvironment [not null, note: '所属项目']
   applicationEnvironmentId String [not null]
-  createdBy String [not null, note: '创建人']
-  deletedBy String [not null, note: '删除人']
+  createdBy String [not null, note: '创建人 hideInSearch createIgnore updateIgnore']
   createdAt DateTime [default: `now()`, not null]
-  deletedAt DateTime
 
   Note: '应用的配置历史'
 }
@@ -227,10 +222,10 @@ Ref: ConfigurationItem.configMapId > ConfigMap.id
 
 Ref: ConfigurationItem.applicationConfigurationId > ApplicationConfiguration.id
 
-Ref: ConfigurationItem.applicationConfigurationHistoryId > ApplicationConfigurationHiostory.id
+Ref: ConfigurationItem.applicationConfigurationHistoryId > ApplicationConfigurationHistory.id
 
 Ref: ConfigMap.projectId > Project.id
 
 Ref: ApplicationConfiguration.applicationEnvironmentId > ApplicationEnvironment.id
 
-Ref: ApplicationConfigurationHiostory.applicationEnvironmentId > ApplicationEnvironment.id
+Ref: ApplicationConfigurationHistory.applicationEnvironmentId > ApplicationEnvironment.id

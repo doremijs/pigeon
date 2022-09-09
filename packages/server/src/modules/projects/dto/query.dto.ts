@@ -10,12 +10,6 @@ export class ProjectsQueryDto extends CommonQueryDto {
   @IsString()
   name?: string
   /**
-   * 项目描述
-   */
-  @IsOptional()
-  @IsString()
-  description?: string
-  /**
    * 创建人
    */
   @IsOptional()

@@ -5,12 +5,14 @@ import {
   CreateProjectDto,
   UpdateProjectDto,
   ProjectModel,
-  ProjectListDto
+  ProjectListDto,
+  UpdateUserProjectRoleDto
 } from './dto/projects.dto'
 import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
 import { PigeonAction } from '@/decorators/action'
-import { CommonBatchRemoveDto } from '@/modules/common/common.dto'
 import { ProjectsQueryDto } from './dto/query.dto'
+import { User } from '@/decorators/user'
+import { JWTUser } from '@/types/user'
 
 @Controller('projects')
 @ApiTags('项目')
@@ -20,38 +22,37 @@ export class ProjectsController {
   @PigeonAction('POST', '', '创建项目')
   @ApiBody({ type: CreateProjectDto })
   @ApiCreatedResponse({ type: ProjectModel })
-  create(@Body() createProjectDto: CreateProjectDto) {
-    return this.projectsService.create(createProjectDto)
+  create(@User() user: JWTUser, @Body() createProjectDto: CreateProjectDto) {
+    return this.projectsService.create(user.id, createProjectDto)
   }
 
   @PigeonAction('GET', '', '查询项目列表')
   @ApiOkResponse({ type: ProjectListDto })
-  findMany(@Query() query: ProjectsQueryDto) {
-    return this.projectsService.findMany(query)
+  findMany(@User() user: JWTUser, @Query() query: ProjectsQueryDto) {
+    return this.projectsService.findMany(user.id, query)
   }
-
-  // TODO 导出
 
   @PigeonAction('GET', ':id', '查询项目详情')
   @ApiOkResponse({ type: ProjectModel })
-  findOne(@Param('id') id: string) {
-    return this.projectsService.findOne(id)
+  findOne(@User() user: JWTUser, @Param('id') id: string) {
+    return this.projectsService.findOne(user.id, id)
   }
 
   @PigeonAction('PATCH', ':id', '更新项目')
   @ApiBody({ type: UpdateProjectDto })
   @ApiOkResponse({ type: ProjectModel })
-  update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
-    return this.projectsService.update(id, updateProjectDto)
+  update(@User() user: JWTUser, @Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
+    return this.projectsService.update(user.id, id, updateProjectDto)
   }
 
-  @PigeonAction('DELETE', 'batch/s', '批量逻辑删除项目')
-  batchSoftRemove(@Body() body: CommonBatchRemoveDto) {
-    return this.projectsService.batchSoftRemove(body.ids)
+  @PigeonAction('PATCH', ':id/users', '更新项目中成员的角色')
+  @ApiBody({ type: UpdateUserProjectRoleDto })
+  updateUserRole(@User() user: JWTUser, @Param('id') id: string, @Body() updateUserRoleDto: UpdateUserProjectRoleDto) {
+    return this.projectsService.updateUserRole(user.id, id, updateUserRoleDto)
   }
 
   @PigeonAction('DELETE', ':id/s', '逻辑删除项目')
-  softRemove(@Param('id') id: string) {
-    return this.projectsService.softRemove(id)
+  softRemove(@User() user: JWTUser, @Param('id') id: string) {
+    return this.projectsService.softRemove(user.id, id)
   }
 }

@@ -9,8 +9,9 @@ import {
 } from './dto/application-environments.dto'
 import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
 import { PigeonAction } from '@/decorators/action'
-import { CommonBatchRemoveDto } from '@/modules/common/common.dto'
 import { ApplicationEnvironmentsQueryDto } from './dto/query.dto'
+import { User } from '@/decorators/user'
+import { JWTUser } from '@/types/user'
 
 @Controller('application-environments')
 @ApiTags('应用的环境')
@@ -20,38 +21,31 @@ export class ApplicationEnvironmentsController {
   @PigeonAction('POST', '', '创建应用的环境')
   @ApiBody({ type: CreateApplicationEnvironmentDto })
   @ApiCreatedResponse({ type: ApplicationEnvironmentModel })
-  create(@Body() createApplicationEnvironmentDto: CreateApplicationEnvironmentDto) {
-    return this.applicationEnvironmentsService.create(createApplicationEnvironmentDto)
+  create(@User() user: JWTUser, @Body() createApplicationEnvironmentDto: CreateApplicationEnvironmentDto) {
+    return this.applicationEnvironmentsService.create(user.id, createApplicationEnvironmentDto)
   }
 
   @PigeonAction('GET', '', '查询应用的环境列表')
   @ApiOkResponse({ type: ApplicationEnvironmentListDto })
-  findMany(@Query() query: ApplicationEnvironmentsQueryDto) {
-    return this.applicationEnvironmentsService.findMany(query)
+  findMany(@User() user: JWTUser, @Query() query: ApplicationEnvironmentsQueryDto) {
+    return this.applicationEnvironmentsService.findMany(user.id, query)
   }
-
-  // TODO 导出
 
   @PigeonAction('GET', ':id', '查询应用的环境详情')
   @ApiOkResponse({ type: ApplicationEnvironmentModel })
-  findOne(@Param('id') id: string) {
-    return this.applicationEnvironmentsService.findOne(id)
+  findOne(@User() user: JWTUser, @Param('id') id: string) {
+    return this.applicationEnvironmentsService.findOne(user.id, id)
   }
 
   @PigeonAction('PATCH', ':id', '更新应用的环境')
   @ApiBody({ type: UpdateApplicationEnvironmentDto })
   @ApiOkResponse({ type: ApplicationEnvironmentModel })
-  update(@Param('id') id: string, @Body() updateApplicationEnvironmentDto: UpdateApplicationEnvironmentDto) {
-    return this.applicationEnvironmentsService.update(id, updateApplicationEnvironmentDto)
-  }
-
-  @PigeonAction('DELETE', 'batch', '批量删除应用的环境')
-  batchRemove(@Body() body: CommonBatchRemoveDto) {
-    return this.applicationEnvironmentsService.batchRemove(body.ids)
+  update(@User() user: JWTUser, @Param('id') id: string, @Body() updateApplicationEnvironmentDto: UpdateApplicationEnvironmentDto) {
+    return this.applicationEnvironmentsService.update(user.id, id, updateApplicationEnvironmentDto)
   }
 
   @PigeonAction('DELETE', ':id', '删除应用的环境')
-  remove(@Param('id') id: string) {
-    return this.applicationEnvironmentsService.remove(id)
+  remove(@User() user: JWTUser, @Param('id') id: string) {
+    return this.applicationEnvironmentsService.remove(user.id, id)
   }
 }

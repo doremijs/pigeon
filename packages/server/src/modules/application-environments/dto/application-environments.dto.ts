@@ -1,7 +1,8 @@
 // Auto generated
 import { PartialType } from '@nestjs/swagger'
+import { EApplicationEnvironmentUserRole } from '@prisma/client'
 import { Type } from 'class-transformer'
-import { IsNotEmpty, IsString, IsOptional } from 'class-validator'
+import { IsNotEmpty, IsString, IsOptional, IsEnum } from 'class-validator'
 
 export class CreateApplicationEnvironmentDto {
   /**
@@ -25,21 +26,36 @@ export class CreateApplicationEnvironmentDto {
   @IsNotEmpty()
   @IsString()
   applicationId: string
-  /**
-   * 创建人
-   */
-  @IsNotEmpty()
-  @IsString()
-  createdBy: string
 }
 
 export class UpdateApplicationEnvironmentDto extends PartialType(CreateApplicationEnvironmentDto) {
+}
+
+export class UpdateApplicationEnvironmentRoleDto {
+  /**
+   * 人员ID
+   */
+  @IsNotEmpty()
+  @IsString()
+  userId: string
+  /**
+   * 角色
+   */
+  @IsNotEmpty()
+  @IsEnum(EApplicationEnvironmentUserRole)
+  role: EApplicationEnvironmentUserRole
 }
 
 export class ApplicationEnvironmentModel extends CreateApplicationEnvironmentDto {
   @IsNotEmpty()
   @IsString()
   id: string
+  /**
+   * 创建人
+   */
+  @IsNotEmpty()
+  @IsString()
+  createdBy: string
   @IsNotEmpty()
   @Type(() => Date)
   createdAt: Date

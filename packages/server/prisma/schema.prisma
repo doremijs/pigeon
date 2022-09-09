@@ -12,7 +12,8 @@ generator client {
 generator NESTJSApiGenerator {
   provider  = "node -r ts-node/register/transpile-only prisma/generator"
   output    = "../src/@generated"
-  whitelist = "Project,Application,ApplicationEnvironment,ConfigurationItem,ConfigMap,ApplicationConfiguration,ApplicationConfigurationHiostory"
+  whitelist = ""
+  // overwrite = true
 }
 
 // https://dbdiagram.io/d
@@ -61,11 +62,11 @@ model User {
 model Project {
   id           String            @id @default(cuid())
   /// 项目名称
-  name         String            @unique
-  /// 项目描述
+  name         String
+  /// 项目描述 hideInSearch
   description  String?
   users        ProjectUserRole[]
-  /// 创建人
+  /// 创建人 hideInSearch createIgnore updateIgnore
   createdBy    String
   creator      User              @relation(fields: [createdBy], references: [id])
   /// 下属应用
@@ -104,7 +105,7 @@ model Application {
   id          String  @id @default(cuid())
   /// 应用名称
   name        String
-  /// 应用描述
+  /// 应用描述 hideInSearch
   description String?
   /// 所属项目
   project     Project @relation(fields: [projectId], references: [id])
@@ -113,7 +114,7 @@ model Application {
   /// 应用环境列表
   environments ApplicationEnvironment[]
 
-  /// 创建人
+  /// 创建人 hideInSearch createIgnore updateIgnore
   createdBy String
   creator   User   @relation(fields: [createdBy], references: [id])
 
@@ -121,8 +122,7 @@ model Application {
 
   createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
-
-  @@unique([name, projectId])
+  deletedAt DateTime?
 }
 
 enum EApplicationUserRole {
@@ -151,9 +151,9 @@ model ApplicationEnvironment {
   id            String      @id @default(cuid())
   /// 环境名称
   name          String
-  /// 环境描述
+  /// 环境描述 hideInSearch
   description   String?
-  /// web域名匹配规则
+  /// web域名匹配规则 hideInSearch
   domainRule    String?
   /// 所属应用
   application   Application @relation(fields: [applicationId], references: [id])
@@ -163,12 +163,12 @@ model ApplicationEnvironment {
   configurations ApplicationConfiguration[]
 
   /// 所有的配置历史
-  configurationHistories ApplicationConfigurationHiostory[]
+  configurationHistories ApplicationConfigurationHistory[]
 
   /// 用户列表
   users ApplicationEnvironmentUserRole[]
 
-  /// 创建人
+  /// 创建人 hideInSearch createIgnore updateIgnore
   createdBy String
   createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
@@ -210,23 +210,23 @@ model ConfigurationItem {
   id          String                  @id @default(cuid())
   /// 键
   key         String
-  /// 值类型
+  /// 值类型 hideInSearch
   valueType   EConfigurationValueType
-  /// 值
+  /// 值 hideInSearch
   value       String
   /// 配置字典
-  configMap   ConfigMap               @relation(fields: [configMapId], references: [id])
-  configMapId String
+  configMap   ConfigMap?              @relation(fields: [configMapId], references: [id])
+  configMapId String?
 
   /// 应用的配置
-  applicationConfiguration   ApplicationConfiguration @relation(fields: [applicationConfigurationId], references: [id])
-  applicationConfigurationId String
+  applicationConfiguration   ApplicationConfiguration? @relation(fields: [applicationConfigurationId], references: [id])
+  applicationConfigurationId String?
 
   /// 应用配置历史
-  applicationConfigurationHistory   ApplicationConfigurationHiostory @relation(fields: [applicationConfigurationHistoryId], references: [id])
-  applicationConfigurationHistoryId String
+  applicationConfigurationHistory   ApplicationConfigurationHistory? @relation(fields: [applicationConfigurationHistoryId], references: [id])
+  applicationConfigurationHistoryId String?
 
-  /// 创建人
+  /// 创建人 hideInSearch createIgnore updateIgnore
   createdBy String
 
   createdAt DateTime  @default(now())
@@ -243,7 +243,7 @@ model ConfigMap {
   project       Project             @relation(fields: [projectId], references: [id])
   projectId     String
 
-  /// 创建人
+  /// 创建人 hideInSearch createIgnore updateIgnore
   createdBy String
 
   createdAt DateTime  @default(now())
@@ -256,12 +256,12 @@ model ApplicationConfiguration {
   /// 版本号
   version                  String?
   /// 配置项列表
-  configuration            ConfigurationItem[]
+  configurations           ConfigurationItem[]
   /// 所属项目
   applicationEnvironment   ApplicationEnvironment @relation(fields: [applicationEnvironmentId], references: [id])
   applicationEnvironmentId String
 
-  /// 创建人
+  /// 创建人 hideInSearch createIgnore updateIgnore
   createdBy String
 
   createdAt DateTime  @default(now())
@@ -269,21 +269,18 @@ model ApplicationConfiguration {
 }
 
 /// 应用的配置历史
-model ApplicationConfigurationHiostory {
+model ApplicationConfigurationHistory {
   id                       String                 @id @default(cuid())
   /// 版本号
   version                  String?
   /// 配置项列表
-  configuration            ConfigurationItem[]
+  configurations           ConfigurationItem[]
   /// 所属项目
   applicationEnvironment   ApplicationEnvironment @relation(fields: [applicationEnvironmentId], references: [id])
   applicationEnvironmentId String
 
-  /// 创建人
+  /// 创建人 hideInSearch createIgnore updateIgnore
   createdBy String
-  /// 删除人
-  deletedBy String
 
-  createdAt DateTime  @default(now())
-  deletedAt DateTime?
+  createdAt DateTime @default(now())
 }

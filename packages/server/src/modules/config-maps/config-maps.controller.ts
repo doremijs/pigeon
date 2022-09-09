@@ -30,8 +30,6 @@ export class ConfigMapsController {
     return this.configMapsService.findMany(query)
   }
 
-  // TODO 导出
-
   @PigeonAction('GET', ':id', '查询配置字典详情')
   @ApiOkResponse({ type: ConfigMapModel })
   findOne(@Param('id') id: string) {
