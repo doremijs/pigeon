@@ -2,7 +2,7 @@
 import { PrismaService } from '@/providers/prisma.service'
 import { ForbiddenException, Injectable } from '@nestjs/common'
 import { Application, ApplicationUserRole, Prisma } from '@prisma/client'
-import { buildOrder, buildWhere } from '../common/utils'
+import { buildInclude, buildOrder, buildWhere } from '../common/utils'
 import type { WhereQuery } from '../common/utils'
 import {
   CreateApplicationDto,
@@ -53,7 +53,7 @@ export class ApplicationsService {
   }
 
   async findMany(userId: string, queryDto: ApplicationsQueryDto) {
-    const { sorter, page = 1, pageSize = 10, ...rest } = queryDto
+    const { sorter, include, page = 1, pageSize = 10, ...rest } = queryDto
     const where: Prisma.ApplicationWhereInput = buildWhere({
       deletedAt: null,
       ...rest
@@ -68,13 +68,8 @@ export class ApplicationsService {
       where,
       skip: pageSize * (page - 1),
       take: pageSize,
-      orderBy: buildOrder(sorter)
-      // include: {
-      //   project: true,
-      //   environments: true,
-      //   creator: true,
-      //   users: true
-      // }
+      orderBy: buildOrder(sorter),
+      include: buildInclude(include)
     })
     const total = await this.prisma.application.count({ where })
     return { total, data }

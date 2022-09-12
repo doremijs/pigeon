@@ -6,7 +6,7 @@ import {
   ApplicationEnvironmentUserRole,
   Prisma
 } from '@prisma/client'
-import { buildOrder, buildWhere } from '../common/utils'
+import { buildInclude, buildOrder, buildWhere } from '../common/utils'
 import type { WhereQuery } from '../common/utils'
 import {
   CreateApplicationEnvironmentDto,
@@ -60,7 +60,7 @@ export class ApplicationEnvironmentsService {
   }
 
   async findMany(userId: string, queryDto: ApplicationEnvironmentsQueryDto) {
-    const { sorter, page = 1, pageSize = 10, ...rest } = queryDto
+    const { sorter, include, page = 1, pageSize = 10, ...rest } = queryDto
     const where: Prisma.ApplicationEnvironmentWhereInput = buildWhere(
       rest as WhereQuery
     )
@@ -74,13 +74,8 @@ export class ApplicationEnvironmentsService {
       where,
       skip: pageSize * (page - 1),
       take: pageSize,
-      orderBy: buildOrder(sorter)
-      // include: {
-      //   application: true,
-      //   configurations: true,
-      //   configurationHistories: true,
-      //   users: true
-      // }
+      orderBy: buildOrder(sorter),
+      include: buildInclude(include)
     })
     const total = await this.prisma.applicationEnvironment.count({ where })
     return { total, data }

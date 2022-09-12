@@ -1,4 +1,7 @@
-export type WhereQuery = Record<string, null | string | number | boolean | Date | (string | number | Date)[]>
+export type WhereQuery = Record<
+  string,
+  null | string | number | boolean | Date | (string | number | Date)[]
+>
 
 /**
  * 根据查询对象生存查询条件
@@ -13,7 +16,8 @@ export type WhereQuery = Record<string, null | string | number | boolean | Date 
  *    age: 'gt:10;lt:20' // 数字范围
  * }
  */
-export function buildWhere(query: WhereQuery) {
+export function buildWhere(query?: WhereQuery) {
+  if (!query) return undefined
   const ret: Record<string, any> = {}
   Object.keys(query).forEach(key => {
     const value = query[key]
@@ -100,7 +104,7 @@ export function buildWhere(query: WhereQuery) {
  * @param sorter 排序语法
  * @returns 排序规则
  */
-export function buildOrder(sorter: string) {
+export function buildOrder(sorter?: string) {
   if (!sorter) return undefined
   // sorter=f1:asc,f2:desc
   const ret: { [key: string]: 'asc' | 'desc' }[] = []
@@ -109,9 +113,57 @@ export function buildOrder(sorter: string) {
     ret.push({
       [field]: ['asc', 'desc'].includes(type)
         ? (type as 'asc' | 'desc')
-        // 默认倒序
-        : 'desc'
+        : // 默认倒序
+          'desc'
     })
   })
   return ret
+}
+
+/**
+ * 根据参数构建include条件，只支持2级嵌套
+ * @example posts?include=category.name;tag;authors:name,id
+ */
+export function buildInclude(include: string) {
+  if (!include) return undefined
+  const entities = include.split(';')
+  const ret: Record<string, any> = {}
+  entities.forEach(item => {
+    buildIncludeItem(ret, item)
+  })
+  return ret
+}
+
+function buildIncludeItem(
+  parentObj: Record<string, any>,
+  item: string,
+  parentKey?: string
+) {
+  const arrayMatched = item.match(/^(.+?)\[(.+?)]$/)
+  if (arrayMatched) {
+    const [_, key, items] = arrayMatched
+    buildIncludeItem(parentObj, items, key)
+  } else {
+    if (item.includes(':')) {
+      const [key, value] = item.split(':')
+      buildIncludeItem(parentObj, value, key)
+    } else if (item.includes('.')) {
+      const [_, key, rest] = item.match(/^(.+?)\.(.+)$/)
+      buildIncludeItem(parentObj, rest, key)
+    } else if (item.includes(',')) {
+      const items = item.split(',')
+      parentObj[parentKey!] = {
+        select: items.reduce((obj, it) => {
+          obj[it] = true
+          return obj
+        }, {})
+      }
+    } else {
+      if (parentKey) {
+        parentObj[parentKey] = { select: { [item]: true } }
+      } else {
+        parentObj[item] = true
+      }
+    }
+  }
 }

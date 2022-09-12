@@ -7,7 +7,7 @@ import {
   Project,
   ProjectUserRole
 } from '@prisma/client'
-import { buildOrder, buildWhere } from '../common/utils'
+import { buildInclude, buildOrder, buildWhere } from '../common/utils'
 import type { WhereQuery } from '../common/utils'
 import {
   CreateProjectDto,
@@ -54,7 +54,7 @@ export class ProjectsService {
   }
 
   async findMany(userId: string, queryDto: ProjectsQueryDto) {
-    const { sorter, page = 1, pageSize = 10, ...rest } = queryDto
+    const { sorter, include, page = 1, pageSize = 10, ...rest } = queryDto
     const where: Prisma.ProjectWhereInput = buildWhere({
       deletedAt: null,
       ...rest
@@ -69,13 +69,8 @@ export class ProjectsService {
       where,
       skip: pageSize * (page - 1),
       take: pageSize,
-      orderBy: buildOrder(sorter)
-      // include: {
-      //   users: true,
-      //   creator: true,
-      //   applications: true,
-      //   configMaps: true
-      // }
+      orderBy: buildOrder(sorter),
+      include: buildInclude(include)
     })
     const total = await this.prisma.project.count({ where })
     return { total, data }

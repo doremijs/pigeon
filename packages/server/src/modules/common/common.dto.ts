@@ -22,8 +22,14 @@ export class CommonQueryDto {
    */
   @IsOptional()
   @IsString()
-  @IsIn(['asc', 'desc'])
-  sorter?: 'asc' | 'desc'
+  sorter?: string
+  /**
+   * 嵌套查询
+   * @example include=tags
+   */
+  @IsOptional()
+  @IsString()
+  include?: string
 }
 
 export class CommonListDto<T> {
