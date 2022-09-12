@@ -1,7 +1,17 @@
-import { Type } from "class-transformer"
-import { IsIn, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator"
+import { Type } from 'class-transformer'
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator'
 
 export class CommonQueryDto {
+  /**
+   * 嵌套查询
+   * @example include=tags
+   */
+  @IsOptional()
+  @IsString()
+  include?: string
+}
+
+export class CommonListQueryDto extends CommonQueryDto {
   /**
    * 当前页
    */
@@ -23,13 +33,6 @@ export class CommonQueryDto {
   @IsOptional()
   @IsString()
   sorter?: string
-  /**
-   * 嵌套查询
-   * @example include=tags
-   */
-  @IsOptional()
-  @IsString()
-  include?: string
 }
 
 export class CommonListDto<T> {

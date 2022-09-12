@@ -134,6 +134,9 @@ async function generateController(cnName: string, args: GenerateArgs, isSoftDele
     resolve(subModulePath, `${dasherizedName}.controller.ts`),
     `${AUTO_GENERATED_BANNER}
 import { Controller, Body, Param, Query } from '@nestjs/common'
+import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
+import { PigeonAction } from '@/decorators/action'
+import { CommonQueryDto } from '@/modules/common/common.dto'
 import { ${pluralizedUpName}Service } from './${dasherizedName}.service'
 import {
   Create${singularedUpName}Dto,
@@ -141,8 +144,6 @@ import {
   ${singularedUpName}Model,
   ${singularedUpName}ListDto
 } from './dto/${dasherizedName}.dto'
-import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
-import { PigeonAction } from '@/decorators/action'
 import { ${pluralizedUpName}QueryDto } from './dto/query.dto'
 
 @Controller('${dasherizedName}')
@@ -171,8 +172,8 @@ export class ${pluralizedUpName}Controller {
 
   @PigeonAction('GET', ':id', '查询${cnName}详情'${model.public ? ', { public: true }' : ''})
   @ApiOkResponse({ type: ${singularedUpName}Model })
-  findOne(@Param('id') id: string) {
-    return this.${pluralizedName}Service.findOne(id)
+  findOne(@Param('id') id: string, @Query() query?: CommonQueryDto) {
+    return this.${pluralizedName}Service.findOne(id, query)
   }
 
   @PigeonAction('PATCH', ':id', '更新${cnName}')
@@ -243,10 +244,11 @@ async function generateService(args: GenerateArgs, model: DMMF.Model, isSoftDele
   await _writeFile(
     resolve(subModulePath, `${dasherizedName}.service.ts`),
     `${AUTO_GENERATED_BANNER}
-import { PrismaService } from '@/providers/prisma.service'
 import { Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
-import { buildOrder, buildWhere } from '../common/utils'
+import { CommonQueryDto } from '@/modules/common/common.dto'
+import { PrismaService } from '@/providers/prisma.service'
+import { buildOrder, buildWhere, buildInclude } from '../common/utils'
 import type { WhereQuery } from '../common/utils'
 import { Create${singularedUpName}Dto, Update${singularedUpName}Dto } from './dto/${dasherizedName}.dto'
 import { ${pluralizedUpName}QueryDto } from './dto/query.dto'
@@ -259,58 +261,36 @@ export class ${pluralizedUpName}Service {
     return this.prisma.${singularedName}.create({ data: create${singularedUpName}Dto })
   }
 
-  async findMany(queryDto: ${pluralizedUpName}QueryDto) {
-    const { sorter, page = 1, pageSize = 10, ...rest } = queryDto
+  async findMany(queryDto: ${pluralizedUpName}QueryDto, viewAll = false) {
+    const { sorter, include, page = 1, pageSize = 10, ...rest } = queryDto
     const where: Prisma.${singularedUpName}WhereInput = buildWhere(${isSoftDelete ? `{
       deletedAt: null,
       ...rest
     }` : 'rest'} as WhereQuery)
     const data = await this.prisma.${singularedName}.findMany({
       where,
-      skip: pageSize * (page - 1),
-      take: pageSize,
+      skip: viewAll ? undefined : pageSize * (page - 1),
+      take: viewAll ? undefined : pageSize,
       orderBy: buildOrder(sorter)${
         allRelations.length
           ? `,
-      include: {
-        ${allRelations.join(`: true,
-        `)}: true
-      }`
+      include: buildInclude(include)`
           : ''
       }
     })
+    if (viewAll) {
+      return data
+    }
     const total = await this.prisma.${singularedName}.count({ where })
     return { total, data }
-  }${model.viewAll ? `
+  }
 
-  async findAll(queryDto: ${pluralizedUpName}QueryDto) {
-    const where: Prisma.${singularedUpName}WhereInput = buildWhere(${isSoftDelete ? `{
-      deletedAt: null,
-      ...queryDto
-    }` : 'queryDto'} as WhereQuery)
-    const data = await this.prisma.${singularedName}.findMany({
-      where${
-        allRelations.length
-          ? `,
-      include: {
-        ${allRelations.join(`: true,
-        `)}: true
-      }`
-          : ''
-      }
-    })
-    return { total: data.length, data }
-  }` : ''}
-
-  findOne(id: string) {
+  findOne(id: string, query?: CommonQueryDto) {
     return this.prisma.${singularedName}.findUnique({
       where: { id }${
         allRelations.length
           ? `,
-      include: {
-        ${allRelations.join(`: true,
-        `)}: true
-      }`
+      include: buildInclude(query?.include)`
           : ''
       }
     })
@@ -442,14 +422,14 @@ async function generateQueryDTO(args: GenerateArgs) {
   await _writeFile(
     resolve(subModulePath, `dto/query.dto.ts`),
     `${AUTO_GENERATED_BANNER}
-import { CommonQueryDto } from '@/modules/common/common.dto'${
+import { CommonListQueryDto } from '@/modules/common/common.dto'${
       imports.length
         ? `
 ${generateImports(imports)}`
         : ''
     }
 
-export class ${pluralizedUpName}QueryDto extends CommonQueryDto {
+export class ${pluralizedUpName}QueryDto extends CommonListQueryDto {
 ${content}
 }
 `
